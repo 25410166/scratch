@@ -106,15 +106,11 @@ Many more shortcuts and features are available in the app—explore via the comm
 
 ## Contributing
 
-Contributions and suggestions are welcome. Scratch is actively maintained but the release cycle is at the whim of my schedule – sometimes I'll review and merge same-day, sometimes it may take several weeks.
+Scratch is mostly stable and intentionally minimal, so I'm no longer monitoring issues and PRs regularly. You're welcome to open them, but I can't guarantee I'll get to everything, and it may take a while when I do.
 
-What makes Scratch special is its minimal feature set and focus on user experience. We're not trying to build Obsidian or Notion, so not every feature will be a fit.
+What makes Scratch special is its minimal feature set and focus on user experience. We're not trying to build Obsidian or Notion, so not every feature will be a fit. If you want to make major changes or take Scratch in a new direction, you should fork it – it's MIT licensed.
 
-**Small fixes and improvements:** go ahead and open a PR, we'll try to merge these in regularly.
-
-**Bigger changes:** if you're not sure whether a feature fits, open an issue first and ask.
-
-**Review process:** I generally won't go back and forth with review comments. Try to address any CodeRabbit comments on your PR. From there, I'll make any additional changes directly.
+**If you open a PR:** keep it small and focused, and try to address any CodeRabbit comments. I generally won't go back and forth with review comments – if I merge, I'll make any additional changes directly.
 
 ## License
 
