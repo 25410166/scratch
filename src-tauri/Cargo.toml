@@ -1,6 +1,6 @@
 [package]
 name = "Scratch"
-version = "0.10.0"
+version = "1.0.0"
 description = "An offline markdown-based notes app"
 authors = ["erictli"]
 edition = "2021"
