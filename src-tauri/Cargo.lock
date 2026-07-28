@@ -10,7 +10,6 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "notify",
- "objc2",
  "objc2-foundation",
  "open",
  "regex",
