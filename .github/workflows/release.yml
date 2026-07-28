@@ -86,7 +86,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      # Don't persist the git token: npm ci runs lifecycle scripts, and the
+      # gh/signer steps below only use env vars
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@v4
