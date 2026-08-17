@@ -76,6 +76,7 @@ jobs:
   rename-deb-package:
     needs: build-and-release
     runs-on: ubuntu-22.04
+    continue-on-error: true
 
     steps:
       # Don't persist the git token: npm ci runs lifecycle scripts, and the
