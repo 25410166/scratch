@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Scratch",
+  "productName": "CatNotes",
   "version": "1.0.0",
-  "identifier": "com.scratch.app",
+  "identifier": "com.catnotes.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Scratch",
+        "title": "CatNotes",
         "width": 1080,
         "height": 720,
         "minWidth": 600,
@@ -60,10 +60,18 @@
     "windows": {
       "webviewInstallMode": {
         "type": "downloadBootstrapper"
+      },
+      "nsis": {
+        "installerIcon": "icons/icon.ico"
       }
     }
   },
   "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["cookapps-catnotes"]
+      }
+    },
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEE3RTQ2NTA4QzJGODdFRTYKUldUbWZ2akNDR1hrcDlud3VQSVhuYVU0cDk5V0RkaVFuVElRSGRVMjlFam9IdFVCNnU1ZlVJOXEK",
       "endpoints": [

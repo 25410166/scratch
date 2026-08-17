@@ -17,6 +17,7 @@ use tokio::fs;
 use tokio::io::AsyncWriteExt;
 
 mod git;
+mod auth;
 
 // Note metadata for list display
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -740,10 +741,21 @@ fn load_app_config(app: &AppHandle) -> AppConfig {
     };
 
     if path.exists() {
-        std::fs::read_to_string(&path)
+        let config: AppConfig = std::fs::read_to_string(&path)
             .ok()
             .and_then(|content| serde_json::from_str(&content).ok())
-            .unwrap_or_default()
+            .unwrap_or_default();
+
+        // Validate that notes_folder exists on disk
+        if let Some(ref folder) = config.notes_folder {
+            if !PathBuf::from(folder).exists() {
+                let mut reset_config = config.clone();
+                reset_config.notes_folder = None;
+                let _ = save_app_config(app, &reset_config);
+                return reset_config;
+            }
+        }
+        config
     } else {
         AppConfig::default()
     }
@@ -804,6 +816,174 @@ fn normalize_notes_folder_path(path: &str) -> Result<PathBuf, String> {
     Ok(PathBuf::from(trimmed))
 }
 
+fn ensure_default_notes(path_buf: &PathBuf) {
+    let welcome_path = path_buf.join("Welcome to CatNotes.md");
+    let symbols_path = path_buf.join("Special Characters & Stickers.md");
+    let pencil_path = path_buf.join("Pencil Style Stickers.md");
+
+    let has_notes = walkdir::WalkDir::new(path_buf)
+        .max_depth(3)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .any(|e| {
+            if !e.path().is_file() {
+                return false;
+            }
+            if let Some(name) = e.file_name().to_str() {
+                if name.starts_with('.') {
+                    return false;
+                }
+            }
+            e.path().extension().map_or(false, |ext| ext == "md")
+        });
+
+    if !has_notes {
+        let welcome_content = r#"# Welcome to CatNotes 🐱
+
+A calm, **offline-first** place to write. Your notes are plain `.md` files that live on *your* computer — no cloud, no account, no internet required.
+
+> *"The palest ink is better than the best memory." — keep your thoughts where you can find them.*
+
+---
+
+## Why you'll like it
+
+- **WYSIWYG editing** that saves clean markdown
+- **Notelinks** — type `[[` to connect notes, like [[Pencil Style Stickers]]
+- **Slash commands** — type `/` to insert headings, lists, tables, and more
+- **Focus mode** for distraction-free writing (`Cmd+Shift+Enter` / `Ctrl+Shift+Enter`)
+- **Local AI Editing** — edit notes with Ollama, Claude, or Codex
+- **Git sync** so your notes follow you across devices
+
+## A few things you can drop in
+
+| Feature | Shortcut | Notes |
+| --- | --- | --- |
+| Source mode | `Cmd+Shift+M` | View & edit raw markdown |
+| Command bar | `Cmd+P` | Jump anywhere fast |
+| New note | `Cmd+N` | Start writing immediately |
+| Format text | `Cmd+B` / `Cmd+I` | Bold & italic shortcuts |
+
+---
+
+### Quick Example
+
+```python
+# CatNotes code snippet example
+def welcome():
+    print("Welcome to CatNotes!")
+```
+"#;
+
+        let symbols_content = r#"# Special Characters & Stickers 🎨
+
+A curated collection of special characters, emojis, and symbols neatly organized for quick copying and pasting into your notes.
+
+---
+
+### 🐱 Cats & Animals
+🐱 🐈 😸 😻 😽 🐾 🐶 🦊 🐼 🦝 🐰 🦁 🐯 🦄 🐬 🦅 🦩 🦔 🐝 🦋 🌸
+
+### ✏️ Writing & Notes
+📝 ✏️ 🖊️ 🖋️ 📖 📚 🎨 📌 📍 📑 📂 📁 🏷️ 💬 💡 🔍 ⚡ 🎯 🚩 🏁 💯
+
+### ✨ Stars & Magic
+✨ 🌟 ⭐ 💫 ✦ ✧ 🔮 🌌 🌙 ☀️ 🌤️ 🌈 💥 💫 ⚡ 🔮 🕯️ 🎁 🎈 🎂
+
+### 🍀 Nature & Food
+🍀 🌸 🌺 🌻 🌿 🍂 🍁 ❄️ ☕ 🍵 🍇 🍎 🍉 🍓 🍒 🥑 🥥 🥐 🍡 🍵
+
+### 🎯 Status & Symbols
+✅ ❌ ⚠️ ℹ️ 🔔 🔒 🔑 ⚙️ 🛠️ 🧪 💬 💖 💓 💗 💘 💝 💤 💭 🔕 ♻️
+
+### 🔣 Arrows & Pointers
+➔ ➜ ➞ ➢ ➣ ➤ ➥ ➦ ➪ ➫ ➬ ➭ ➮ ➯ ➱ ➲ 🏹 ⇄ ⇆ ⇦ ⇧ ⇨ ⇩ ⇪ ⤺ ⤻ ⤾ ⤿
+
+### 📦 Box Drawing & Borders
+┌ ┬ ┐   ├ ┼ ┤   └ ┴ ┘   │ ─
+═ ║ ╔ ╦ ╗ ╠ ╬ ╣ ╚ ╩ ╝
+─── ━━━━ ┈ ┈ ┈ ✂------------------------
+"#;
+
+        let pencil_content = r#"# Pencil Style Stickers ✏️
+
+A collection of hand-drawn pencil-style sketch stickers, ASCII cat art, and aesthetic doodles to style your notes.
+
+---
+
+### 🐱 Pencil Style Cats
+
+```
+       /\_/\
+      ( o.o )   < Meow! Welcome to CatNotes!
+       > ^ <
+```
+
+```
+       /\_/\
+      (  -_- )  Zzz... Your notes stay 100% private and safe!
+      /  \ \
+```
+
+```
+       |\_/|
+      / @ @ \
+     ( > º < )  < Have a productive day!
+      `>>x<<'
+      /  O  \
+```
+
+```
+  /\___/\
+ (  o   o  )
+ (  =^=  )
+ (        )
+ (         )
+ (  ||___||  )
+```
+
+---
+
+### ✏️ Pencil Frames & Doodles
+
+```
+ ╭────────────────────────────╮
+ │   ✦ Note of the Day ✦     │
+ ╰────────────────────────────╯
+```
+
+```
+ ┌────────────────────────────┐
+ │  ✎ To-Do List              │
+ └────────────────────────────┘
+```
+
+```
+  (   )   (   )   (   )
+   ) (     ) (     ) (
+  [___]   [___]   [___]   < Relax and keep writing...
+```
+
+---
+
+### 🌸 Cute Kaomoji Expressions
+
+- `(˶ᵔ ᵕ ᵔ˶)` Soft & Happy
+- `( •̀ ω •́ )✧` Excited Sparkles
+- `(⸝⸝ᵕᴗᵕ⸝⸝)` Gentle Smile
+- `(>_ <)` Shy Cute
+- `(っ Live , Love , Write ✍️ )っ`
+- `[ ✦✦✦✦✦ ]` 5-Star Rating
+- `[░░░░░░░░░░ 0%]` Loading Bar
+- `[██████████ 100%]` Completed Bar
+"#;
+
+        let _ = std::fs::write(&welcome_path, welcome_content);
+        let _ = std::fs::write(&symbols_path, symbols_content);
+        let _ = std::fs::write(&pencil_path, pencil_content);
+    }
+}
+
 /// Shared initialization logic for setting a notes folder.
 /// Creates required directories, verifies write access, updates config/settings,
 /// adds asset protocol scope, and rebuilds the search index.
@@ -828,6 +1008,15 @@ fn initialize_notes_folder(app: &AppHandle, path_buf: &PathBuf, state: &AppState
     std::fs::write(&write_test_path, b"ok")
         .map_err(|e| format!("Notes folder is not writable: {}", e))?;
     let _ = std::fs::remove_file(&write_test_path);
+
+    // Auto-generate default 3 starter notes if folder is empty
+    ensure_default_notes(path_buf);
+
+    // Clear notes cache from previous folder
+    {
+        let mut cache = state.notes_cache.write().expect("cache write lock");
+        cache.clear();
+    }
 
     // Load per-folder settings (starts fresh with defaults if none exist)
     let settings = load_settings(&normalized_path);
@@ -3706,7 +3895,60 @@ fn enable_webview_spellcheck_defaults() {
     }
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
+fn try_handle_deep_link_arg(app: &tauri::AppHandle, args: &[String]) {
+    eprintln!("[deep-link] try_handle_deep_link_arg called with {} args: {:?}", args.len(), args);
+    for arg in args {
+        if arg.starts_with("cookapps-catnotes://") || arg.contains("://auth?") {
+            eprintln!("[deep-link] found deep link arg: {}", arg);
+            if let Ok(parsed) = url::Url::parse(arg) {
+                let mut code_opt = None;
+                let mut state_opt = None;
+                for (k, v) in parsed.query_pairs() {
+                    if k == "code" {
+                        code_opt = Some(v.into_owned());
+                    } else if k == "state" {
+                        state_opt = Some(v.into_owned());
+                    }
+                }
+                eprintln!("[deep-link] parsed code={:?}, state={:?}", code_opt.as_deref().map(|s| &s[..s.len().min(8)]), state_opt.as_deref().map(|s| &s[..s.len().min(8)]));
+                if let (Some(code), Some(state)) = (code_opt, state_opt) {
+                    let app_handle = app.clone();
+                    tauri::async_runtime::spawn(async move {
+                        let has_auth_mgr = app_handle.try_state::<Arc<auth::AuthManager>>().is_some();
+                        eprintln!("[deep-link] auth_manager available: {}", has_auth_mgr);
+                        if let Some(auth_mgr) = app_handle.try_state::<Arc<auth::AuthManager>>() {
+                            eprintln!("[deep-link] calling process_deep_link_exchange");
+                            match auth_mgr.process_deep_link_exchange(&code, &state).await {
+                                Ok(new_state) => {
+                                    eprintln!("[deep-link] exchange OK, status={:?}", new_state.status);
+                                    let _ = app_handle.emit("auth-state-changed", &new_state);
+                                    if let Some(w) = app_handle.get_webview_window("main") {
+                                        let _ = w.show();
+                                        let _ = w.set_focus();
+                                    }
+                                }
+                                Err(e) => {
+                                    eprintln!("[deep-link] exchange FAILED: {}", e);
+                                    let error_state = auth::types::AuthState {
+                                        status: auth::types::AuthStatusCode::Error,
+                                        message: e,
+                                        user: None,
+                                        entitlement: None,
+                                        is_offline: false,
+                                        is_grace_period: false,
+                                        checkout_url: None,
+                                    };
+                                    let _ = app_handle.emit("auth-state-changed", &error_state);
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    }
+}
+
 pub fn run() {
     #[cfg(target_os = "macos")]
     enable_webview_spellcheck_defaults();
@@ -3714,6 +3956,7 @@ pub fn run() {
     let app = tauri::Builder::default()
         // Single-instance: forward CLI args from subsequent launches to the running instance
         .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+            try_handle_deep_link_arg(app, &args);
             handle_cli_args(app, &args, &cwd);
         }))
         .plugin(tauri_plugin_opener::init())
@@ -3721,7 +3964,54 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_deep_link::init())
         .setup(|app| {
+            // Initialize CookApps AuthManager state
+            let app_data_dir = app.path().app_data_dir().unwrap_or_else(|_| PathBuf::from("."));
+            let auth_manager = Arc::new(auth::AuthManager::new(app_data_dir));
+            app.manage(auth_manager);
+
+            // Register custom protocol scheme (cookapps-catnotes://) in OS registry so browser can trigger callback
+            #[cfg(desktop)]
+            {
+                use tauri_plugin_deep_link::DeepLinkExt;
+                if let Err(e) = app.deep_link().register_all() {
+                    eprintln!("[deep-link] Plugin register_all failed: {}", e);
+                }
+
+                #[cfg(target_os = "windows")]
+                {
+                    if let Ok(current_exe) = std::env::current_exe() {
+                        use winreg::enums::*;
+                        use winreg::RegKey;
+                        let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+                        if let Ok((key, _)) = hkcu.create_subkey(r"Software\Classes\cookapps-catnotes") {
+                            let _ = key.set_value("", &"URL:cookapps-catnotes Protocol");
+                            let _ = key.set_value("URL Protocol", &"");
+                            if let Ok((cmd_key, _)) = key.create_subkey(r"shell\open\command") {
+                                let cmd = format!("\"{}\" \"%1\"", current_exe.to_string_lossy());
+                                let _ = cmd_key.set_value("", &cmd);
+                                eprintln!("[deep-link] Registered Windows registry command: {}", cmd);
+                            }
+                        }
+                    }
+                }
+
+                // Listen for deep link URLs delivered by tauri-plugin-deep-link (named pipe / macOS open-url)
+                // This is the primary path on Windows when the app is already running
+                let app_handle_dl = app.handle().clone();
+                app.deep_link().on_open_url(move |event| {
+                    let urls = event.urls();
+                    eprintln!("[deep-link] on_open_url fired with {} URL(s)", urls.len());
+                    for url in urls {
+                        let url_str = url.to_string();
+                        eprintln!("[deep-link] on_open_url: {}", &url_str[..url_str.len().min(80)]);
+                        let args = vec![String::new(), url_str]; // arg[0] = exe placeholder
+                        try_handle_deep_link_arg(&app_handle_dl, &args);
+                    }
+                });
+            }
+
             // Load app config on startup (contains notes folder path)
             let mut app_config = load_app_config(app.handle());
 
@@ -3789,6 +4079,7 @@ pub fn run() {
             // see the preview. When no notes folder is configured yet, the main window is
             // always shown so new users can complete onboarding via the FolderPicker.
             let args: Vec<String> = std::env::args().collect();
+            try_handle_deep_link_arg(app.handle(), &args);
             let opened_preview = if args.len() > 1 {
                 let cwd = std::env::current_dir()
                     .unwrap_or_default()
@@ -3893,6 +4184,13 @@ pub fn run() {
             uninstall_cli,
             get_cli_status,
             set_title_bar_theme,
+            auth::start_cookapps_login,
+            auth::handle_deep_link_code,
+            auth::get_auth_state,
+            auth::check_session,
+            auth::logout,
+            auth::cancel_cookapps_login,
+            auth::open_cookapps_url,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");

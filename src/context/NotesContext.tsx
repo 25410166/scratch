@@ -507,6 +507,17 @@ export function NotesProvider({ children }: { children: ReactNode }) {
     try {
       await notesService.setNotesFolder(path);
       setNotesFolderState(path);
+      setSelectedNoteId(null);
+      setCurrentNote(null);
+      const notesList = await notesService.listNotes();
+      setNotes(notesList);
+      if (notesList.length > 0) {
+        try {
+          const firstNote = await notesService.readNote(notesList[0].id);
+          setSelectedNoteId(notesList[0].id);
+          setCurrentNote(firstNote);
+        } catch (_) {}
+      }
       // Start file watcher after setting folder
       await notesService.startFileWatcher();
     } catch (err) {
@@ -525,6 +536,13 @@ export function NotesProvider({ children }: { children: ReactNode }) {
       setCurrentNote(null);
       const notesList = await notesService.listNotes();
       setNotes(notesList);
+      if (notesList.length > 0) {
+        try {
+          const firstNote = await notesService.readNote(notesList[0].id);
+          setSelectedNoteId(notesList[0].id);
+          setCurrentNote(firstNote);
+        } catch (_) {}
+      }
       await notesService.startFileWatcher();
     } catch (err) {
       setError(
@@ -606,6 +624,13 @@ export function NotesProvider({ children }: { children: ReactNode }) {
         if (folder) {
           const notesList = await notesService.listNotes();
           setNotes(notesList);
+          if (notesList.length > 0) {
+            try {
+              const firstNote = await notesService.readNote(notesList[0].id);
+              setSelectedNoteId(notesList[0].id);
+              setCurrentNote(firstNote);
+            } catch (_) {}
+          }
           // Start file watcher
           await notesService.startFileWatcher();
         }

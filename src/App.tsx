@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { NotesProvider, useNotes } from "./context/NotesContext";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
+import { AuthProvider } from "./context/AuthContext";
+import { AuthGate } from "./components/auth/AuthGate";
 import { listen } from "@tauri-apps/api/event";
 import { GitProvider } from "./context/GitContext";
 import { TooltipProvider, Toaster } from "./components/ui";
@@ -680,11 +682,15 @@ function App() {
     <ThemeProvider>
       <Toaster />
       <TooltipProvider>
-        <NotesProvider>
-          <GitProvider>
-            <AppContent />
-          </GitProvider>
-        </NotesProvider>
+        <AuthProvider>
+          <AuthGate>
+            <NotesProvider>
+              <GitProvider>
+                <AppContent />
+              </GitProvider>
+            </NotesProvider>
+          </AuthGate>
+        </AuthProvider>
       </TooltipProvider>
     </ThemeProvider>
   );

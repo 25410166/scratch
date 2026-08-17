@@ -2,24 +2,18 @@ import { useState, useEffect, useRef } from "react";
 import {
   ArrowLeftIcon,
   FolderIcon,
-  SwatchIcon,
   KeyboardIcon,
-  InfoIcon,
-  IntegrationsIcon,
 } from "../icons";
 import { Button, IconButton } from "../ui";
 import { GeneralSettingsSection } from "./GeneralSettingsSection";
-import { AppearanceSettingsSection } from "./EditorSettingsSection";
 import { ShortcutsSettingsSection } from "./ShortcutsSettingsSection";
-import { AboutSettingsSection } from "./AboutSettingsSection";
-import { ToolsSettingsSection } from "./ToolsSettingsSection";
 import { mod, isMac, isWindows } from "../../lib/platform";
 
 interface SettingsPageProps {
   onBack: () => void;
 }
 
-type SettingsTab = "general" | "tools" | "editor" | "shortcuts" | "about";
+type SettingsTab = "general" | "shortcuts";
 
 const tabs: {
   id: SettingsTab;
@@ -28,10 +22,7 @@ const tabs: {
   shortcut: string;
 }[] = [
   { id: "general", label: "Folder", icon: FolderIcon, shortcut: "1" },
-  { id: "tools", label: "Integrations", icon: IntegrationsIcon, shortcut: "2" },
-  { id: "editor", label: "Appearance", icon: SwatchIcon, shortcut: "3" },
-  { id: "shortcuts", label: "Shortcuts", icon: KeyboardIcon, shortcut: "4" },
-  { id: "about", label: "About", icon: InfoIcon, shortcut: "5" },
+  { id: "shortcuts", label: "Shortcuts", icon: KeyboardIcon, shortcut: "2" },
 ];
 
 export function SettingsPage({ onBack }: SettingsPageProps) {
@@ -54,16 +45,7 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
           setActiveTab("general");
         } else if (e.key === "2") {
           e.preventDefault();
-          setActiveTab("tools");
-        } else if (e.key === "3") {
-          e.preventDefault();
-          setActiveTab("editor");
-        } else if (e.key === "4") {
-          e.preventDefault();
           setActiveTab("shortcuts");
-        } else if (e.key === "5") {
-          e.preventDefault();
-          setActiveTab("about");
         }
       }
     };
@@ -131,10 +113,7 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
         >
           <div className={`w-full max-w-3xl mx-auto px-6 pb-6${isWindows ? " pt-2" : ""}`}>
             {activeTab === "general" && <GeneralSettingsSection />}
-            {activeTab === "tools" && <ToolsSettingsSection />}
-            {activeTab === "editor" && <AppearanceSettingsSection />}
             {activeTab === "shortcuts" && <ShortcutsSettingsSection />}
-            {activeTab === "about" && <AboutSettingsSection />}
           </div>
         </div>
       </div>

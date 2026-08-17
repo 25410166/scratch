@@ -33,35 +33,23 @@ export function FolderPicker() {
 
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center p-8 max-w-lg select-none">
-          <div
-            role="img"
-            aria-label="Folders"
-            className="w-48 aspect-square mx-auto mb-2 opacity-40 animate-fade-in-up"
-            style={{
-              animationDelay: "0ms",
-              backgroundColor: "var(--color-text)",
-              WebkitMaskImage: "url(/folders-dark.png)",
-              WebkitMaskSize: "contain",
-              WebkitMaskRepeat: "no-repeat",
-              WebkitMaskPosition: "center",
-              maskImage: "url(/folders-dark.png)",
-              maskSize: "contain",
-              maskRepeat: "no-repeat",
-              maskPosition: "center",
-            }}
+          <img
+            src="/folders-dark.png"
+            alt="CatNotes"
+            className="w-48 h-48 mx-auto mb-2 object-contain animate-fade-in-up"
           />
 
           <h1
             className="text-3xl text-text font-serif mb-2 tracking-[-0.01em] animate-fade-in-up"
             style={{ animationDelay: "100ms" }}
           >
-            Welcome to Scratch
+            Welcome to CatNotes
           </h1>
           <p
             className="text-text-muted mb-6 animate-fade-in-up"
             style={{ animationDelay: "100ms" }}
           >
-            Scratch is an offline-first notes app. Your notes are simply stored
+            CatNotes is an offline-first notes app. Your notes are simply stored
             on your computer as markdown files.
           </p>
           <div

@@ -42,7 +42,7 @@ export function AboutSettingsSection() {
       <section className="pb-2">
         <h2 className="text-xl font-medium mb-0.5">Version</h2>
         <p className="text-sm text-text-muted mb-4">
-          You are currently using Scratch v{appVersion || "..."}
+          You are currently using CatNotes v{appVersion || "..."}
         </p>
         <Button
           onClick={handleCheckForUpdates}
@@ -70,9 +70,9 @@ export function AboutSettingsSection() {
 
       {/* About Section */}
       <section className="pb-2">
-        <h2 className="text-xl font-medium mb-1">About Scratch</h2>
+        <h2 className="text-xl font-medium mb-1">About CatNotes</h2>
         <p className="text-sm text-text-muted mb-4">
-          Scratch is a minimalist markdown scratchpad for capturing quick
+          CatNotes is a minimalist markdown scratchpad for capturing quick
           thoughts, todos, and ideas. We're offline-first, keyboard-optimized,
           AI-compatible, and open source with no cloud, no accounts, and no
           subscriptions. Learn more on{" "}

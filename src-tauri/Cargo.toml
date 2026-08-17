@@ -1,5 +1,5 @@
 [package]
-name = "Scratch"
+name = "CatNotes"
 version = "1.0.0"
 description = "An offline markdown-based notes app"
 authors = ["erictli"]
@@ -33,6 +33,25 @@ regex = "1"
 walkdir = "2"
 tauri-plugin-single-instance = "2"
 chrono = "0.4"
+ed25519-dalek = { version = "2.1", features = ["pkcs8", "rand_core", "serde"] }
+sha2 = "0.10"
+rand = "0.8"
+keyring = "3.2"
+subtle = "2.5"
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+tauri-plugin-deep-link = "2"
+uuid = { version = "1", features = ["v4"] }
+hex = "0.4"
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.55"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2-foundation = { version = "0.3", features = ["NSUserDefaults", "NSString"] }
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+opt-level = 2
+strip = true
+panic = "abort"
